@@ -1,0 +1,8 @@
+{
+  "name": "Chú Hiển MMO - Affiliate Master",
+  "description": "Hệ thống All-in-One Hỗ Trợ Affiliate Đa Nền Tảng - Tiktok, Youtube, Shoppe, Facebook.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
