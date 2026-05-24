@@ -28,6 +28,7 @@ import ScriptOptimizer from "./components/ScriptOptimizer";
 import ContentScanner from "./components/ContentScanner";
 import { getHistory } from "./utils/storage";
 import { SubAppId } from "./types";
+import { verifyLicenseClient } from "./utils/license";
 
 interface RecentProjectItem {
   id: string;
@@ -52,6 +53,15 @@ export default function App() {
         setIsLicenseVerified(false);
         return;
       }
+      
+      // Try instant, secure client-side SHA-256 check first (essential for GitHub Pages)
+      const isClientValid = await verifyLicenseClient(stored);
+      if (isClientValid) {
+        setIsLicenseVerified(true);
+        setIsLicenseChecking(false);
+        return;
+      }
+
       try {
         const response = await fetch("/api/verify-license", {
           method: "POST",
@@ -66,6 +76,8 @@ export default function App() {
           setIsLicenseVerified(false);
         }
       } catch (err) {
+        // If server is not reachable (like on static GitHub Pages), we trust the client-side check.
+        // Since client-side check already failed above, we default to false.
         setIsLicenseVerified(false);
       } finally {
         setIsLicenseChecking(false);
@@ -82,6 +94,16 @@ export default function App() {
     }
     setIsLicenseChecking(true);
     setLicenseError("");
+
+    // Try client-side SHA-256 first
+    const isClientValid = await verifyLicenseClient(trimmed);
+    if (isClientValid) {
+      localStorage.setItem("app_license_key", trimmed);
+      setIsLicenseVerified(true);
+      setIsLicenseChecking(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/verify-license", {
         method: "POST",
